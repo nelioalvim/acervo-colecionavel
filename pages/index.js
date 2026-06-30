@@ -117,7 +117,7 @@ function PricePanel({ item, onApply, onClose }) {
         </div>
         {!result && !loading && (
           <div style={{textAlign:'center',padding:'20px 0'}}>
-            <p style={{color:'#8a7f6f',fontSize:13,marginBottom:20,lineHeight:1.6}}>A IA irá pesquisar no <strong style={{color:'#e2d9c8'}}>Mercado Livre</strong> e no <strong style={{color:'#e2d9c8'}}>eBay / PriceCharting</strong>.</p>
+            <p style={{color:'#8a7f6f',fontSize:13,marginBottom:20,lineHeight:1.6}}>A IA irá pesquisar no <strong style={{color:'#e2d9c8'}}>Mercado Livre</strong>.</p>
             <button onClick={search} style={{background:'linear-gradient(135deg,#c9963a,#e8b44a)',color:'#0d1117',border:'none',padding:'12px 32px',borderRadius:8,fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:'pointer'}}>🔍 PESQUISAR AGORA</button>
           </div>
         )}
