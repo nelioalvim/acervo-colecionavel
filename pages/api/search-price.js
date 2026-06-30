@@ -3,7 +3,13 @@ export default async function handler(req, res) {
   const { itemName } = req.body
   if (!itemName) return res.status(400).json({ error: 'itemName required' })
 
-  const prompt = `Voce e um especialista em games e eletronicos retro coleccionaveis. Pesquise os precos atuais de mercado para o item: "${itemName}". Busque: 1) Mercado Livre Brasil preco medio em BRL; 2) eBay OU PriceCharting preco medio em USD. Nao e erro nao encontrar em um dos mercados. Responda APENAS com JSON: {"marketBR": numero_ou_null, "marketExt": numero_ou_null}`
+  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis, com profundo conhecimento de nomenclaturas alternativas usadas por colecionadores.
+
+Pesquise os preços atuais de mercado para o item: "${itemName}"
+
+Se a busca pelo nome exato não retornar resultados, tente variações: remova palavras entre parênteses como "(Loose)", "(CIB)"; tente só o nome principal; tente termos em inglês para o exterior e português para o Brasil. Faça pelo menos 2 buscas diferentes antes de desistir. Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Não é erro não encontrar em um dos mercados — use null nesse caso, mas só após tentar variações.
+
+Responda APENAS com JSON: {"marketBR": numero_ou_null, "marketExt": numero_ou_null}`
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -16,8 +22,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        max_tokens: 2000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
