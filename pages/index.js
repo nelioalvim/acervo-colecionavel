@@ -132,10 +132,9 @@ function PricePanel({ item, onApply, onClose }) {
         {result && (
           <div>
             {result.summary && <div style={{background:'#1a2030',borderLeft:'3px solid #c9963a',padding:'10px 14px',borderRadius:'0 6px 6px 0',marginBottom:18,fontSize:12,color:'#a0968a',lineHeight:1.6}}>{result.summary}</div>}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:18}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr',gap:12,marginBottom:18}}>
               {[
                 {key:'marketBR',label:'🇧🇷 MERCADO BR',color:'#4ade80',fmt:fmtBRL,data:result.marketBR},
-                {key:'marketExt',label:'🌍 MERCADO EXTERIOR',color:'#a78bfa',fmt:fmtExt,data:result.marketExt},
               ].map(col => (
                 <div key={col.key} style={{background:'#0d1117',border:`1px solid ${col.color}22`,borderRadius:8,padding:14}}>
                   <div style={{fontSize:10,color:col.color,letterSpacing:2,marginBottom:8}}>{col.label}</div>
@@ -263,7 +262,6 @@ export default function Home() {
   const applyPrices = async (itemId, draft) => {
     const patch = {}
     if (draft.marketBR !== '') patch.marketBR = draft.marketBR
-    if (draft.marketExt !== '') patch.marketExt = draft.marketExt
     await updateItem(itemId, patch)
   }
 
@@ -281,11 +279,10 @@ export default function Home() {
         const result = await res.json()
         const patch = {}
         if (result.marketBR != null) patch.marketBR = result.marketBR
-        if (result.marketExt != null) patch.marketExt = result.marketExt
         if (Object.keys(patch).length) await updateItem(item.id, patch)
-        setBulkUpdate(prev => ({...prev, done:prev.done+1, log:prev.log.map(l=>l.id===item.id?{...l,status:'ok',marketBR:result.marketBR,marketExt:result.marketExt}:l)}))
+        setBulkUpdate(prev => ({...prev, done:prev.done+1, log:prev.log.map(l=>l.id===item.id?{...l,status:'ok',marketBR:result.marketBR}:l)}))
       } catch {
-        setBulkUpdate(prev => ({...prev, done:prev.done+1, log:prev.log.map(l=>l.id===item.id?{...l,status:'ok',marketBR:null,marketExt:null}:l)}))
+        setBulkUpdate(prev => ({...prev, done:prev.done+1, log:prev.log.map(l=>l.id===item.id?{...l,status:'ok',marketBR:null}:l)}))
       }
     }
     setBulkUpdate(prev => ({...prev, running:false}))
@@ -433,7 +430,7 @@ export default function Home() {
                 <div key={i} style={{display:'flex',alignItems:'center',gap:10,fontSize:12}}>
                   <span style={{width:60,color:l.status==='ok'?'#4ade80':'#fbbf24',fontWeight:700}}>{l.status==='ok'?'✔ OK':'⟳ ...'}</span>
                   <span style={{color:'#e2d9c8',flex:1}}>{l.name}</span>
-                  {l.status==='ok' && <span style={{color:'#6b7280',fontSize:11}}>{l.marketBR!=null?`BR: R$${Number(l.marketBR).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'BR: —'}{' · '}{l.marketExt!=null?`EXT: US$${Number(l.marketExt).toLocaleString('en-US',{minimumFractionDigits:2})}`:'EXT: —'}</span>}
+                  {l.status==='ok' && <span style={{color:'#6b7280',fontSize:11}}>{l.marketBR!=null?`BR: R$${Number(l.marketBR).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'BR: —'}</span>}
                 </div>
               ))}
             </div>
@@ -481,7 +478,7 @@ export default function Home() {
               <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
                 <thead>
                   <tr style={{borderBottom:'1px solid #2a3040'}}>
-                    {['ITEM','STATUS','PREÇO AQUISIÇÃO','MERCADO EXTERIOR (US$)','MERCADO BR (R$)','AÇÕES'].map(h=>(
+                    {['ITEM','STATUS','PREÇO AQUISIÇÃO','MERCADO BR (R$)','AÇÕES'].map(h=>(
                       <th key={h} style={{padding:'8px 12px',textAlign:'left',fontSize:10,color:'#6b7280',letterSpacing:2,fontWeight:600,whiteSpace:'nowrap'}}>{h}</th>
                     ))}
                   </tr>
@@ -526,9 +523,6 @@ export default function Home() {
                         </td>
                         <td style={{padding:'10px 12px',color:'#60a5fa',fontWeight:600}}>
                           {isEditing?<input type="number" value={editData.acquisition??''} onChange={e=>setEditData(p=>({...p,acquisition:e.target.value===''?null:Number(e.target.value)}))} style={cInput('#60a5fa')}/>:fmtBRL(it.acquisition)}
-                        </td>
-                        <td style={{padding:'10px 12px',color:'#a78bfa'}}>
-                          {isEditing?<input type="number" value={editData.marketExt} onChange={e=>setEditData(p=>({...p,marketExt:e.target.value}))} style={cInput('#a78bfa')}/>:fmtExt(it.marketExt)}
                         </td>
                         <td style={{padding:'10px 12px',color:'#4ade80',fontWeight:600}}>
                           {isEditing?<input type="number" value={editData.marketBR} onChange={e=>setEditData(p=>({...p,marketBR:e.target.value}))} style={cInput('#4ade80')}/>:fmtBRL(it.marketBR||null)}
