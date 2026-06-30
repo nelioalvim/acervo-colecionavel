@@ -3,23 +3,13 @@ export default async function handler(req, res) {
   const { itemName } = req.body
   if (!itemName) return res.status(400).json({ error: 'itemName required' })
 
-  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis, com profundo conhecimento de nomenclaturas alternativas, abreviações e termos usados por colecionadores brasileiros e internacionais.
-
-Pesquise os preços atuais de mercado para o item: "${itemName}"
-
-INSTRUÇÕES IMPORTANTES PARA MAXIMIZAR RESULTADOS:
-- Se a busca pelo nome exato não retornar resultados, tente variações: remova palavras entre parênteses como "(Loose)", "(CIB)", "(Novo)"; tente só o nome principal do produto; tente sinônimos comuns (ex: "TecToy" pode ser omitido nas buscas internacionais); tente termos em inglês para o mercado exterior e em português para o Brasil.
-- Para o Mercado Livre Brasil: busque tanto anúncios atuais quanto vendidos recentemente. Termos como "CIB" (Complete In Box) podem não existir no Brasil — busque por "completo na caixa" ou apenas o nome do item.
-- Para o mercado exterior: tente eBay, PriceCharting.com, e se for um console ou jogo retro também considere lojas especializadas como Retroplace ou GameValueNow.
-- Faça pelo menos 2-3 buscas diferentes antes de desistir de um item. Varie os termos a cada tentativa.
-- Itens muito específicos de colecionador (peças raras, variantes regionais) podem ter poucos resultados — nesse caso, estime um preço baseado em itens similares e explique a estimativa na nota.
-- Só retorne null se tiver certeza, após múltiplas tentativas, que não há nenhuma base de preço disponível.
+  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD.
 
 Responda APENAS com JSON válido, sem texto antes ou depois:
 {
-  "marketBR": { "price": 999.00, "source": "Mercado Livre", "note": "breve nota sobre a faixa de preço encontrada ou estimativa" },
-  "marketExt": { "price": 99.00, "source": "eBay", "note": "breve nota sobre a faixa de preço encontrada ou estimativa" },
-  "summary": "resumo de 1-2 frases sobre o mercado deste item, mencionando se algum valor é estimado"
+  "marketBR": { "price": 999.00, "source": "Mercado Livre", "note": "breve nota" },
+  "marketExt": { "price": 99.00, "source": "eBay", "note": "breve nota" },
+  "summary": "resumo de 1 frase"
 }`
 
   try {
@@ -33,20 +23,56 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 8 }],
+        max_tokens: 2000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
+
     const data = await response.json()
+
+    // DEBUG: se a chamada à API falhou, devolve o erro real pra gente ver
+    if (!response.ok) {
+      return res.status(200).json({
+        marketBR: null, marketExt: null,
+        summary: 'ERRO API status ' + response.status,
+        debug: data
+      })
+    }
+
     const text = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || ''
+
+    // DEBUG: se não tem texto nenhum, devolve o data inteiro pra investigar
+    if (!text) {
+      return res.status(200).json({
+        marketBR: null, marketExt: null,
+        summary: 'SEM TEXTO NA RESPOSTA',
+        debug: data
+      })
+    }
+
     const match = text.match(/\{[\s\S]*"marketBR"[\s\S]*\}/)
     if (match) {
       try { return res.status(200).json(JSON.parse(match[0])) }
-      catch { return res.status(200).json({ marketBR: null, marketExt: null, summary: 'Erro ao processar resposta da busca.' }) }
+      catch (parseErr) {
+        return res.status(200).json({
+          marketBR: null, marketExt: null,
+          summary: 'ERRO AO PARSEAR JSON: ' + parseErr.message,
+          debug: text
+        })
+      }
     }
-    return res.status(200).json({ marketBR: null, marketExt: null, summary: 'Nenhum resultado encontrado.' })
+
+    return res.status(200).json({
+      marketBR: null, marketExt: null,
+      summary: 'JSON NAO ENCONTRADO NO TEXTO',
+      debug: text
+    })
   } catch (e) {
-    return res.status(200).json({ marketBR: null, marketExt: null, summary: 'Erro na busca: ' + (e.message || 'desconhecido') })
+    return res.status(200).json({
+      marketBR: null, marketExt: null,
+      summary: 'ERRO EXCEPTION: ' + (e.message || 'desconhecido'),
+      debug: String(e)
+    })
   }
 }
