@@ -24,30 +24,26 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 2000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
 
     const data = await response.json()
 
-    // DEBUG: se a chamada à API falhou, devolve o erro real pra gente ver
     if (!response.ok) {
       return res.status(200).json({
         marketBR: null, marketExt: null,
-        summary: 'ERRO API status ' + response.status,
-        debug: data
+        summary: 'ERRO API status ' + response.status + ': ' + JSON.stringify(data).slice(0, 300)
       })
     }
 
     const text = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || ''
 
-    // DEBUG: se não tem texto nenhum, devolve o data inteiro pra investigar
     if (!text) {
       return res.status(200).json({
         marketBR: null, marketExt: null,
-        summary: 'SEM TEXTO NA RESPOSTA',
-        debug: data
+        summary: 'SEM TEXTO NA RESPOSTA: ' + JSON.stringify(data).slice(0, 300)
       })
     }
 
@@ -57,22 +53,19 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
       catch (parseErr) {
         return res.status(200).json({
           marketBR: null, marketExt: null,
-          summary: 'ERRO AO PARSEAR JSON: ' + parseErr.message,
-          debug: text
+          summary: 'ERRO AO PARSEAR JSON: ' + parseErr.message
         })
       }
     }
 
     return res.status(200).json({
       marketBR: null, marketExt: null,
-      summary: 'JSON NAO ENCONTRADO NO TEXTO',
-      debug: text
+      summary: 'JSON NAO ENCONTRADO: ' + text.slice(0, 300)
     })
   } catch (e) {
     return res.status(200).json({
       marketBR: null, marketExt: null,
-      summary: 'ERRO EXCEPTION: ' + (e.message || 'desconhecido'),
-      debug: String(e)
+      summary: 'ERRO EXCEPTION: ' + (e.message || 'desconhecido')
     })
   }
 }
