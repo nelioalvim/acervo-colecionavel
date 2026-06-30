@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   const { itemName } = req.body
   if (!itemName) return res.status(400).json({ error: 'itemName required' })
 
-  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD.
+  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Seja direto e eficiente: use no máximo 2 buscas no total (uma para cada mercado), não pesquise repetidamente o mesmo termo.
 
 Responda APENAS com JSON válido, sem texto antes ou depois:
 {
@@ -22,9 +22,9 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
         'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        model: 'claude-haiku-4-5',
+        max_tokens: 1000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })

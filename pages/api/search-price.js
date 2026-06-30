@@ -3,11 +3,7 @@ export default async function handler(req, res) {
   const { itemName } = req.body
   if (!itemName) return res.status(400).json({ error: 'itemName required' })
 
-  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis, com profundo conhecimento de nomenclaturas alternativas usadas por colecionadores.
-
-Pesquise os preços atuais de mercado para o item: "${itemName}"
-
-Se a busca pelo nome exato não retornar resultados, tente variações: remova palavras entre parênteses como "(Loose)", "(CIB)"; tente só o nome principal; tente termos em inglês para o exterior e português para o Brasil. Faça pelo menos 2 buscas diferentes antes de desistir. Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Não é erro não encontrar em um dos mercados — use null nesse caso, mas só após tentar variações.
+  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Seja direto e eficiente: use no máximo 2 buscas no total. Não é erro não encontrar em um dos mercados — use null.
 
 Responda APENAS com JSON: {"marketBR": numero_ou_null, "marketExt": numero_ou_null}`
 
@@ -21,12 +17,17 @@ Responda APENAS com JSON: {"marketBR": numero_ou_null, "marketExt": numero_ou_nu
         'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }],
+        model: 'claude-haiku-4-5',
+        max_tokens: 600,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
+
+    if (!response.ok) {
+      return res.status(200).json({ marketBR: null, marketExt: null })
+    }
+
     const data = await response.json()
     const text = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || ''
     const match = text.match(/\{[^{}]*"marketBR"[^{}]*\}/)
