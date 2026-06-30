@@ -1,6 +1,21 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
+// ── Neo Geo AES console icon ────────────────────────────────────────────────
+function NeoGeoIcon({ size = 32 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" style={{display:'block',flexShrink:0}}>
+      <rect x="4" y="20" width="56" height="32" rx="3" fill="#c4c4bb" stroke="#3a3a36" strokeWidth="1.5"/>
+      <rect x="10" y="14" width="44" height="10" rx="2" fill="#2b2b28" stroke="#000" strokeWidth="1"/>
+      <rect x="14" y="17" width="36" height="4" rx="1" fill="#1a1a18"/>
+      <rect x="8" y="40" width="14" height="6" rx="1" fill="#3a3a36"/>
+      <rect x="42" y="40" width="14" height="6" rx="1" fill="#3a3a36"/>
+      <circle cx="56" cy="46" r="2" fill="#c9963a"/>
+      <rect x="6" y="48" width="52" height="2" fill="#8a8a82"/>
+    </svg>
+  )
+}
+
 const STATUS_OPTIONS = ['', 'ok', 'pane', 'vender']
 const GAME_SUBCATEGORIES = [
   'Atari 2600','Atari 7800','Nintendo NES / Famicom','Super Nintendo (SNES)',
@@ -53,7 +68,7 @@ function LoginScreen({ onLogin }) {
     <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Courier New',monospace"}}>
       <div style={{background:'#161b27',border:'1px solid #c9963a',borderRadius:12,padding:40,width:'100%',maxWidth:400}}>
         <div style={{textAlign:'center',marginBottom:32}}>
-          <div style={{fontSize:48,marginBottom:12}}>🕹️</div>
+          <div style={{display:'flex',justifyContent:'center',marginBottom:12}}><NeoGeoIcon size={48}/></div>
           <h1 style={{margin:0,fontSize:22,fontWeight:900,letterSpacing:3,color:'#c9963a',textTransform:'uppercase'}}>Acervo Colecionável</h1>
           <p style={{margin:'8px 0 0',color:'#6b7280',fontSize:12,letterSpacing:2}}>ÁREA RESTRITA</p>
         </div>
@@ -323,7 +338,7 @@ export default function Home() {
         <div style={{maxWidth:1300,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
           <div>
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:6}}>
-              <span style={{fontSize:32}}>🕹️</span>
+              <NeoGeoIcon size={32}/>
               <h1 style={{margin:0,fontSize:26,fontWeight:900,letterSpacing:3,color:'#c9963a',textTransform:'uppercase'}}>Acervo Colecionável</h1>
             </div>
             <p style={{margin:0,color:'#8a7f6f',fontSize:12,letterSpacing:2}}>CONTROLE DE ITENS · PREÇOS DE AQUISIÇÃO E MERCADO · IA</p>
