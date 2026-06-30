@@ -3,12 +3,14 @@ export default async function handler(req, res) {
   const { itemName } = req.body
   if (!itemName) return res.status(400).json({ error: 'itemName required' })
 
-  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Seja direto e eficiente: use no máximo 2 buscas no total (uma para cada mercado), não pesquise repetidamente o mesmo termo.
+  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}".
+
+Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Use até 4 buscas no total, e varie os termos se a primeira tentativa não trouxer um preço claro (ex: tente sem "(CIB)"/"(Loose)", tente só o nome principal do produto, tente "preço" ou "valor" no termo de busca). Se encontrar uma página de listagem com vários preços de itens similares, pode estimar uma faixa/média e marcar como estimativa na nota. Só retorne null se realmente não houver nenhuma base de preço após tentar variações.
 
 Responda APENAS com JSON válido, sem texto antes ou depois:
 {
-  "marketBR": { "price": 999.00, "source": "Mercado Livre", "note": "breve nota" },
-  "marketExt": { "price": 99.00, "source": "eBay", "note": "breve nota" },
+  "marketBR": { "price": 999.00, "source": "Mercado Livre", "note": "breve nota, indique se é estimativa" },
+  "marketExt": { "price": 99.00, "source": "eBay", "note": "breve nota, indique se é estimativa" },
   "summary": "resumo de 1 frase"
 }`
 
@@ -23,8 +25,8 @@ Responda APENAS com JSON válido, sem texto antes ou depois:
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: 1000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
+        max_tokens: 1500,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })

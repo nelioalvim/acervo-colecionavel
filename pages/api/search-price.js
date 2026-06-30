@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   const { itemName } = req.body
   if (!itemName) return res.status(400).json({ error: 'itemName required' })
 
-  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Seja direto e eficiente: use no máximo 2 buscas no total. Não é erro não encontrar em um dos mercados — use null.
+  const prompt = `Você é um especialista em games e eletrônicos retrô colecionáveis. Pesquise os preços atuais de mercado para o item: "${itemName}". Mercado Livre Brasil para BRL; eBay ou PriceCharting para USD. Use até 4 buscas, variando os termos se necessário (remova "(CIB)"/"(Loose)", tente só o nome principal). Pode estimar com base em itens similares se não achar preço exato. Não é erro não encontrar em um dos mercados — use null só após tentar variações.
 
 Responda APENAS com JSON: {"marketBR": numero_ou_null, "marketExt": numero_ou_null}`
 
@@ -18,8 +18,8 @@ Responda APENAS com JSON: {"marketBR": numero_ou_null, "marketExt": numero_ou_nu
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5',
-        max_tokens: 600,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 2 }],
+        max_tokens: 800,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
