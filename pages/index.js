@@ -18,27 +18,71 @@ const statusStyle = {
   '':     { bg:'transparent', color:'#6b7280', label:'—' },
 }
 
-// Map DB snake_case to app camelCase
 const fromDB = (row) => ({
-  id: row.id,
-  name: row.name,
-  category: row.category,
-  subcategory: row.subcategory || '',
-  acquisition: row.acquisition,
-  status: row.status || '',
-  marketExt: row.market_ext ?? '',
-  marketBR: row.market_br ?? '',
+  id: row.id, name: row.name, category: row.category,
+  subcategory: row.subcategory || '', acquisition: row.acquisition,
+  status: row.status || '', marketExt: row.market_ext ?? '', marketBR: row.market_br ?? '',
 })
 
 const toDB = (item) => ({
-  name: item.name,
-  category: item.category,
-  subcategory: item.subcategory || '',
-  acquisition: item.acquisition || null,
-  status: item.status || '',
+  name: item.name, category: item.category, subcategory: item.subcategory || '',
+  acquisition: item.acquisition || null, status: item.status || '',
   market_ext: item.marketExt !== '' ? Number(item.marketExt) : null,
   market_br: item.marketBR !== '' ? Number(item.marketBR) : null,
 })
+
+// ── Login Screen ──────────────────────────────────────────────────────────────
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleLogin = async () => {
+    if (!email || !password) { setError('Preencha email e senha.'); return }
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) setError('Email ou senha incorretos.')
+    else onLogin()
+    setLoading(false)
+  }
+
+  const iStyle = { width:'100%', background:'#0d1117', border:'1px solid #2a3040', color:'#e2d9c8', padding:'12px 14px', borderRadius:6, fontFamily:"'Courier New',monospace", fontSize:14, boxSizing:'border-box' }
+
+  return (
+    <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Courier New',monospace"}}>
+      <div style={{background:'#161b27',border:'1px solid #c9963a',borderRadius:12,padding:40,width:'100%',maxWidth:400}}>
+        <div style={{textAlign:'center',marginBottom:32}}>
+          <div style={{fontSize:48,marginBottom:12}}>🕹️</div>
+          <h1 style={{margin:0,fontSize:22,fontWeight:900,letterSpacing:3,color:'#c9963a',textTransform:'uppercase'}}>Acervo Colecionável</h1>
+          <p style={{margin:'8px 0 0',color:'#6b7280',fontSize:12,letterSpacing:2}}>ÁREA RESTRITA</p>
+        </div>
+
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div>
+            <div style={{fontSize:10,color:'#6b7280',letterSpacing:2,marginBottom:6}}>EMAIL</div>
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&handleLogin()}
+              placeholder="seu@email.com" style={iStyle}/>
+          </div>
+          <div>
+            <div style={{fontSize:10,color:'#6b7280',letterSpacing:2,marginBottom:6}}>SENHA</div>
+            <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&handleLogin()}
+              placeholder="••••••••" style={iStyle}/>
+          </div>
+
+          {error && <div style={{background:'#2a1a1a',border:'1px solid #4a2020',borderRadius:6,padding:'10px 14px',color:'#f87171',fontSize:13}}>{error}</div>}
+
+          <button onClick={handleLogin} disabled={loading}
+            style={{background:'linear-gradient(135deg,#c9963a,#e8b44a)',color:'#0d1117',border:'none',padding:'14px',borderRadius:8,fontFamily:"'Courier New',monospace",fontWeight:700,fontSize:14,cursor:loading?'not-allowed':'pointer',letterSpacing:1,marginTop:8,opacity:loading?0.7:1}}>
+            {loading ? '⟳ ENTRANDO...' : '🔑 ENTRAR'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // ── Price Panel ───────────────────────────────────────────────────────────────
 function PricePanel({ item, onApply, onClose }) {
@@ -51,8 +95,7 @@ function PricePanel({ item, onApply, onClose }) {
     setLoading(true); setResult(null); setError(null)
     try {
       const res = await fetch('/api/search-price-detail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemName: item.name }),
       })
       const data = await res.json()
@@ -74,12 +117,8 @@ function PricePanel({ item, onApply, onClose }) {
         </div>
         {!result && !loading && (
           <div style={{textAlign:'center',padding:'20px 0'}}>
-            <p style={{color:'#8a7f6f',fontSize:13,marginBottom:20,lineHeight:1.6}}>
-              A IA irá pesquisar no <strong style={{color:'#e2d9c8'}}>Mercado Livre</strong> e no <strong style={{color:'#e2d9c8'}}>eBay / PriceCharting</strong>.
-            </p>
-            <button onClick={search} style={{background:'linear-gradient(135deg,#c9963a,#e8b44a)',color:'#0d1117',border:'none',padding:'12px 32px',borderRadius:8,fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:'pointer'}}>
-              🔍 PESQUISAR AGORA
-            </button>
+            <p style={{color:'#8a7f6f',fontSize:13,marginBottom:20,lineHeight:1.6}}>A IA irá pesquisar no <strong style={{color:'#e2d9c8'}}>Mercado Livre</strong> e no <strong style={{color:'#e2d9c8'}}>eBay / PriceCharting</strong>.</p>
+            <button onClick={search} style={{background:'linear-gradient(135deg,#c9963a,#e8b44a)',color:'#0d1117',border:'none',padding:'12px 32px',borderRadius:8,fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:'pointer'}}>🔍 PESQUISAR AGORA</button>
           </div>
         )}
         {loading && (
@@ -124,6 +163,8 @@ function PricePanel({ item, onApply, onClose }) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function Home() {
+  const [session, setSession] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
   const [items, setItems] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editId, setEditId] = useState(null)
@@ -139,15 +180,28 @@ export default function Home() {
   const [hideValues, setHideValues] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  // Load from Supabase
+  // Check session
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setAuthLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Load items when logged in
+  useEffect(() => {
+    if (!session) return
     const load = async () => {
       const { data, error } = await supabase.from('items').select('*').order('id')
       if (!error && data) setItems(data.map(fromDB))
       setLoading(false)
     }
     load()
-  }, [])
+  }, [session])
 
   const CATEGORIES = useMemo(() => ['Todos', ...Array.from(new Set((items||[]).map(i => i.category)))], [items])
 
@@ -169,6 +223,12 @@ export default function Home() {
   const totalBR = (items||[]).reduce((s,it) => s+(it.marketBR?Number(it.marketBR):0), 0)
   const toSell = (items||[]).filter(it => it.status==='vender').length
   const okCount = (items||[]).filter(it => it.status==='ok').length
+
+  // Subtotals based on filtered items
+  const isFiltered = filterCat !== 'Todos' || filterStatus !== 'todos' || filterSubcat !== 'todos' || search !== ''
+  const subAcquisition = filtered.reduce((s,it) => s+(it.acquisition||0), 0)
+  const subBR = filtered.reduce((s,it) => s+(it.marketBR?Number(it.marketBR):0), 0)
+  const subCount = filtered.length
 
   const updateItem = async (id, patch) => {
     setItems(prev => prev.map(it => it.id===id ? {...it,...patch} : it))
@@ -215,8 +275,7 @@ export default function Home() {
       setBulkUpdate(prev => ({...prev, current:i+1, log:[...prev.log,{id:item.id,name:item.name,status:'buscando'}]}))
       try {
         const res = await fetch('/api/search-price', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
+          method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ itemName: item.name }),
         })
         const result = await res.json()
@@ -232,9 +291,24 @@ export default function Home() {
     setBulkUpdate(prev => ({...prev, running:false}))
   }
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+  }
+
   const iStyle = {background:'#161b27',border:'1px solid #2a3040',color:'#e2d9c8',padding:'8px 14px',borderRadius:6,fontFamily:"'Courier New',monospace",fontSize:13}
   const cInput = (color) => ({background:'#0d1117',border:'1px solid #2a3040',color,padding:'4px 8px',borderRadius:4,fontFamily:'inherit',fontSize:13,width:110})
 
+  // Auth loading
+  if (authLoading) return (
+    <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Courier New',monospace",color:'#c9963a',fontSize:14,letterSpacing:2}}>
+      ⟳ VERIFICANDO ACESSO...
+    </div>
+  )
+
+  // Not logged in
+  if (!session) return <LoginScreen onLogin={() => {}} />
+
+  // Loading items
   if (loading) return (
     <div style={{minHeight:'100vh',background:'#0d1117',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Courier New',monospace",color:'#c9963a',fontSize:14,letterSpacing:2}}>
       ⟳ CARREGANDO ACERVO...
@@ -261,6 +335,7 @@ export default function Home() {
             <div style={{width:8,height:8,borderRadius:'50%',background:'#4ade80'}}/>
             <span style={{fontSize:10,color:'#6b7280',letterSpacing:1}}>SUPABASE · DADOS NA NUVEM</span>
             {saving && <span style={{fontSize:10,color:'#fbbf24',marginLeft:4}}>⟳ salvando...</span>}
+            <button onClick={handleLogout} style={{marginLeft:12,background:'none',border:'1px solid #2a3040',color:'#6b7280',padding:'4px 12px',borderRadius:4,fontFamily:'inherit',fontSize:10,cursor:'pointer',letterSpacing:1}}>⏻ SAIR</button>
           </div>
         </div>
       </div>
@@ -313,6 +388,31 @@ export default function Home() {
           <button onClick={()=>setShowAdd(true)} style={{background:'#c9963a',color:'#0d1117',border:'none',padding:'8px 20px',borderRadius:6,fontFamily:'inherit',fontWeight:700,fontSize:13,cursor:'pointer'}}>+ NOVO ITEM</button>
         </div>
       </div>
+
+      {/* Subtotal bar — only shown when filtered */}
+      {isFiltered && (
+        <div style={{maxWidth:1300,margin:'-8px auto 16px',padding:'0 32px'}}>
+          <div style={{background:'#1a1f2e',border:'1px solid #2a3040',borderRadius:8,padding:'12px 20px',display:'flex',gap:32,flexWrap:'wrap',alignItems:'center'}}>
+            <div style={{fontSize:10,color:'#c9963a',letterSpacing:2,fontWeight:700}}>▸ SUBTOTAL DO FILTRO</div>
+            <div>
+              <div style={{fontSize:10,color:'#6b7280',letterSpacing:2,marginBottom:2}}>ITENS</div>
+              <div style={{fontSize:16,fontWeight:700,color:'#c9963a'}}>{subCount}</div>
+            </div>
+            <div>
+              <div style={{fontSize:10,color:'#6b7280',letterSpacing:2,marginBottom:2}}>INVESTIDO</div>
+              <div style={{fontSize:16,fontWeight:700,color:'#60a5fa',filter:hideValues?'blur(6px)':'none',transition:'filter 0.2s'}}>
+                R$ {subAcquisition.toLocaleString('pt-BR',{minimumFractionDigits:2})}
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:10,color:'#6b7280',letterSpacing:2,marginBottom:2}}>VALOR BR</div>
+              <div style={{fontSize:16,fontWeight:700,color:'#4ade80',filter:hideValues?'blur(6px)':'none',transition:'filter 0.2s'}}>
+                {subBR > 0 ? `R$ ${subBR.toLocaleString('pt-BR',{minimumFractionDigits:2})}` : '—'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bulk progress */}
       {bulkUpdate && (
@@ -394,7 +494,6 @@ export default function Home() {
                       <tr key={it.id} style={{borderBottom:'1px solid #1a2030',background:idx%2===0?'transparent':'#0f1520'}}
                         onMouseEnter={e=>e.currentTarget.style.background='#161b27'}
                         onMouseLeave={e=>e.currentTarget.style.background=idx%2===0?'transparent':'#0f1520'}>
-
                         <td style={{padding:'10px 12px',fontWeight:500,color:it.status==='vender'?'#9ca3af':'#e2d9c8'}}>
                           {isEditing?(
                             <div style={{display:'flex',flexDirection:'column',gap:4}}>
@@ -413,7 +512,6 @@ export default function Home() {
                             </div>
                           )}
                         </td>
-
                         <td style={{padding:'10px 12px'}}>
                           {isEditing?(
                             <select value={editData.status} onChange={e=>setEditData(p=>({...p,status:e.target.value}))} style={{background:'#0d1117',border:'1px solid #2a3040',color:'#e2d9c8',padding:'4px 8px',borderRadius:4,fontFamily:'inherit',fontSize:12}}>
@@ -426,7 +524,6 @@ export default function Home() {
                             </select>
                           )}
                         </td>
-
                         <td style={{padding:'10px 12px',color:'#60a5fa',fontWeight:600}}>
                           {isEditing?<input type="number" value={editData.acquisition??''} onChange={e=>setEditData(p=>({...p,acquisition:e.target.value===''?null:Number(e.target.value)}))} style={cInput('#60a5fa')}/>:fmtBRL(it.acquisition)}
                         </td>
@@ -436,7 +533,6 @@ export default function Home() {
                         <td style={{padding:'10px 12px',color:'#4ade80',fontWeight:600}}>
                           {isEditing?<input type="number" value={editData.marketBR} onChange={e=>setEditData(p=>({...p,marketBR:e.target.value}))} style={cInput('#4ade80')}/>:fmtBRL(it.marketBR||null)}
                         </td>
-
                         <td style={{padding:'10px 12px',whiteSpace:'nowrap'}}>
                           {isEditing?(
                             <>
