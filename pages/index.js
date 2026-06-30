@@ -566,7 +566,7 @@ export default function Home() {
         ))}
         {Object.keys(grouped).length===0 && (
           <div style={{textAlign:'center',padding:60,color:'#6b7280'}}>
-            <div style={{fontSize:40,marginBottom:12}}>🕹️</div>
+            <div style={{display:'flex',justifyContent:'center',marginBottom:12,opacity:0.6}}><NeoGeoIcon size={40}/></div>
             <div style={{fontSize:14,letterSpacing:2}}>NENHUM ITEM ENCONTRADO</div>
           </div>
         )}
